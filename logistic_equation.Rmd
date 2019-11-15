@@ -1,0 +1,45 @@
+---
+title: "logistic equation simulation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Library import
+
+```{r}
+library(tidyverse)
+library(data.table)
+```
+
+## Define functions for computing logistic equation
+
+```{r}
+# x is a ratio between the population size and the annihilation number (P/A): 0 <= x <= 1
+
+logit_fn <- function(r, x) {
+  return(r*x*(1-x))
+}
+
+iterate_logit_eq <- function(seed, r, iter_num = 20) {
+  iter_env <- new.env()
+  iter_env$x_val <- seed
+  result <- sapply(1:(iter_num-1), function(iter) {
+    iter_env$x_val <- logit_fn(r, iter_env$x_val)
+    return(iter_env$x_val)
+  })
+  return(c(seed, result))
+}
+```
+
+```{r}
+iter_num <- 50
+r <- 2.5 # r = 4 is chaos (no periodic behavior)
+seed <- 0.8
+logit_df <- data.frame(t = 1:iter_num, value = iterate_logit_eq(seed, r, iter_num = iter_num))
+ggplot(data = logit_df, mapping = aes(x = t, y = value)) +
+  geom_line() + geom_point()
+```
+

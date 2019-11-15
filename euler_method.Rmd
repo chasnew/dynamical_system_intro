@@ -1,0 +1,55 @@
+---
+title: "euler_method"
+author: "Chanuwas (New) Aswamenakul"
+date: "11/14/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework 2: Advanced
+
+## Import libraries
+```{r}
+library(tidyverse)
+library(data.table)
+```
+
+```{r euler method}
+euler_calculation <- function(seed, delta_t, iter_num, grad_f) {
+  iter_env <- new.env() # create an environment for a local variable
+  iter_env$cur_val <- seed
+  results <- sapply(1:iter_num, function(iter) {
+    grad <- grad_f(iter_env$cur_val)
+    iter_env$cur_val <- iter_env$cur_val + (grad*delta_t)
+    return(iter_env$cur_val)
+  })
+  return(c(seed, results))
+}
+
+newton_cooling_f <- function(x) {
+  return(0.2*(20 - x))
+}
+```
+
+```{r question 1.1}
+final_t <- 40
+delta_ts <- 2/(2^(0:5))
+init_val <- 1
+result_df <- data.frame()
+
+for (delta_t in delta_ts) {
+  new_iter_num <- final_t/delta_t
+  results <- euler_calculation(init_val, delta_t, new_iter_num, newton_cooling_f)
+  ts <- (0:(new_iter_num))*delta_t
+  
+  result_df <- rbind(result_df, data.frame(t = ts, value = results,
+                                           delta_t = rep(as.character(delta_t), length(new_iter_num))))
+}
+
+ggplot(data = result_df, aes(x = t, y = value, color = delta_t)) +
+  geom_line()
+```
+
