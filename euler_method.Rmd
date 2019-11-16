@@ -14,7 +14,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Import libraries
 ```{r}
 library(tidyverse)
-library(data.table)
 ```
 
 ```{r euler method}
@@ -29,12 +28,29 @@ euler_calculation <- function(seed, delta_t, iter_num, grad_f) {
   return(c(seed, results))
 }
 
-newton_cooling_f <- function(x) {
-  return(0.2*(20 - x))
+newton_cooling_f <- function(t) {
+  return(0.2*(20 - t))
 }
 ```
 
 ```{r question 1.1}
+final_t <- 40
+delta_t <- 1
+init_val <- 1
+
+new_iter_num <- final_t/delta_t
+results <- euler_calculation(init_val, delta_t, new_iter_num, newton_cooling_f)
+ts <- (0:(new_iter_num))*delta_t
+  
+result_df <- data.frame(t = ts, value = results,
+                        delta_t = rep(as.character(delta_t), length(new_iter_num)))
+
+ggplot(data = result_df, aes(x = t, y = value, color = delta_t)) +
+  geom_line() + geom_point()
+```
+
+
+```{r question 1.2}
 final_t <- 40
 delta_ts <- 2/(2^(0:5))
 init_val <- 1
@@ -51,5 +67,30 @@ for (delta_t in delta_ts) {
 
 ggplot(data = result_df, aes(x = t, y = value, color = delta_t)) +
   geom_line()
+```
+
+```{r question 1.3}
+exact_cooling_f <- function(seed, t) {
+  return(20 - ((20 - seed)*exp(-0.2*t)))
+}
+
+final_t <- 40
+delta_t <- 1
+init_val <- 1
+
+new_iter_num <- final_t/delta_t
+results <- euler_calculation(init_val, delta_t, new_iter_num, newton_cooling_f)
+ts <- (0:(new_iter_num))*delta_t
+  
+result_df <- data.frame(t = ts, value = results,
+                        method = "euler")
+
+exact_results <- sapply(1:new_iter_num, function(iter) {
+  return(exact_cooling_f(init_val, ts[iter+1]))
+}) %>% c(init_val, .)
+
+result_df <- rbind(result_df, data.frame(t = ts, value = exact_results, method = "exact"))
+ggplot(data = result_df, aes(x = t, y = value, color = method)) +
+  geom_line() + geom_point()
 ```
 
